@@ -1,7 +1,7 @@
 import os
 import uuid
 
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.template.defaultfilters import slugify
@@ -13,14 +13,14 @@ def profile_image_file_path(instance, filename):
     _, extension = os.path.splitext(filename)
     filename = f"{slugify(instance.name)}-{uuid.uuid4()}{extension}"
 
-    return os.path.join("uploads/profile/", filename)
+    return os.path.join("uploads/profiles/", filename)
 
 
 def post_image_file_path(instance, filename):
     _, extension = os.path.splitext(filename)
     filename = f"{slugify(instance.name)}-{uuid.uuid4()}{extension}"
 
-    return os.path.join("uploads/post/", filename)
+    return os.path.join("uploads/posts/", filename)
 
 
 class Profile(models.Model):
@@ -44,8 +44,8 @@ class Post(models.Model):
     image = models.ImageField(null=True, upload_to=post_image_file_path)
     content = models.TextField()
     post_date = models.DateTimeField(auto_now_add=True)
-    likes = GenericForeignKey("Like")
-    comments = GenericForeignKey("Comment")
+    likes = GenericRelation("Like", related_name="posts")
+    comments = GenericRelation("Comment", related_name="posts")
 
     def __str__(self):
         return self.title
@@ -60,7 +60,6 @@ class Post(models.Model):
 
 
 class Like(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="likes")
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="likes"
     )
@@ -73,11 +72,10 @@ class Like(models.Model):
     content_object = GenericForeignKey("content_type", "object_id")
 
     def __str__(self):
-        return f"{self.user} liked {self.post}"
+        return f"{self.user} liked {self.content_object}"
 
 
 class Comment(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="comments"
     )
@@ -89,7 +87,7 @@ class Comment(models.Model):
     content_object = GenericForeignKey("content_type", "object_id")
 
     def __str__(self):
-        return f"{self.user} commented {self.post}"
+        return f"{self.user} commented {self.content_object}"
 
 
 class Follow(models.Model):
