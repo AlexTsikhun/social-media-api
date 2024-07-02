@@ -60,3 +60,5 @@ think, that split user/profile is ok!
 user can have many posts
 
 in profile total tikes?
+
+used fat models
