@@ -62,3 +62,7 @@ user can have many posts
 in profile total tikes?
 
 used fat models
+
+profile -> post -- my posts
+and 
+posts of followed
