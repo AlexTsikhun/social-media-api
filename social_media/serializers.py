@@ -124,7 +124,7 @@ class PostDetailSerializer(PostSerializer):
         )
 
     def get_comments(self, post):
-        comments = post.user.comments.filter(post=post.id)
+        comments = post.comments.all()
         serializer = CommentSerializer(comments, many=True)
         return serializer.data
 
@@ -151,13 +151,26 @@ class PostDetailSerializer(PostSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    # user = serializers.CharField(source="user.username", read_only=True)
+    # this should remove
+    user = serializers.CharField(source="user.username", read_only=True)
 
     class Meta:
         model = Comment
         fields = (
             "id",
-            # "user",
+            "user",
+            "comment_text",
+            "comment_date",
+        )
+
+
+class CommentProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Comment
+        fields = (
+            "id",
+            "user",
             # "post",
             "comment_text",
             "comment_date",
