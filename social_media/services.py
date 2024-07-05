@@ -21,7 +21,7 @@ def remove_like(obj, user):
     Like.objects.filter(content_type=obj_type, object_id=obj.id, user=user).delete()
 
 
-def is_fan(obj, user) -> bool:
+def is_liked(obj, user) -> bool:
     """Checking if `user` likes `obj`."""
     if not user.is_authenticated:
         return False
@@ -30,7 +30,7 @@ def is_fan(obj, user) -> bool:
     return likes.exists()
 
 
-def get_fans(obj):
+def get_likes(obj):
     """List of all users that likes `obj`."""
     obj_type = ContentType.objects.get_for_model(obj)
     return get_user_model().objects.filter(
