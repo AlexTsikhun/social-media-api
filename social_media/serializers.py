@@ -7,6 +7,7 @@ from social_media.models import Profile, Like, Post, Follow, Comment
 
 class ProfileSerializer(serializers.ModelSerializer):
     # profile_name = serializers.CharField(source="user.username", read_only=True)
+    user = serializers.CharField(source="user.username", read_only=True)
     my_posts = serializers.SerializerMethodField()
 
     class Meta:
@@ -84,6 +85,8 @@ class PostListSerializer(serializers.ModelSerializer):
 
 
 class LikeSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source="user.username", read_only=True)
+
     class Meta:
         model = Like
         fields = (
@@ -97,6 +100,7 @@ class LikeSerializer(serializers.ModelSerializer):
 class PostDetailSerializer(PostSerializer):
     # add post instance
     # is_liked = serializers.SerializerMethodField()
+    user = serializers.CharField(source="user.username", read_only=True)
     comments = serializers.SerializerMethodField()
     likes = LikeSerializer(many=True, read_only=True)
     # likes?
@@ -134,6 +138,8 @@ class PostDetailSerializer(PostSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    # user = serializers.CharField(source="user.username", read_only=True)
+
     class Meta:
         model = Comment
         fields = (
@@ -147,6 +153,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class CommentListSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source="user.username", read_only=True)
     post_title = serializers.CharField(source="post.title", read_only=True)
 
     class Meta:
@@ -162,6 +169,7 @@ class CommentListSerializer(serializers.ModelSerializer):
 
 
 class CommentDetailSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source="user.username", read_only=True)
     # post_title = serializers.CharField(source="post.title", read_only=True)
     post = PostListSerializer(many=False, read_only=True)
 
