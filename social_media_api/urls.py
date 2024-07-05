@@ -17,6 +17,8 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from social_media_api import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -24,4 +26,4 @@ urlpatterns = [
         "api/v1/social_media/", include("social_media.urls", namespace="social_media")
     ),
     path("api/v1/user/", include("user.urls", namespace="user")),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
