@@ -66,3 +66,5 @@ used fat models
 profile -> post -- my posts
 and 
 posts of followed
+
+can follow in post and in profile

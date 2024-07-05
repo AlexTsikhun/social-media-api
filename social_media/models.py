@@ -11,14 +11,14 @@ from social_media_api import settings
 
 def profile_image_file_path(instance, filename):
     _, extension = os.path.splitext(filename)
-    filename = f"{slugify(instance.name)}-{uuid.uuid4()}{extension}"
+    filename = f"{slugify(instance.user.username)}-{uuid.uuid4()}{extension}"
 
     return os.path.join("uploads/profiles/", filename)
 
 
 def post_image_file_path(instance, filename):
     _, extension = os.path.splitext(filename)
-    filename = f"{slugify(instance.name)}-{uuid.uuid4()}{extension}"
+    filename = f"{slugify(instance.title)}-{uuid.uuid4()}{extension}"
 
     return os.path.join("uploads/posts/", filename)
 
@@ -45,8 +45,9 @@ class Post(models.Model):
     content = models.TextField()
     post_date = models.DateTimeField(auto_now_add=True)
     likes = GenericRelation("Like", related_name="posts")
-    comments = GenericRelation("Comment", related_name="posts")
 
+    # comments = GenericRelation("Comment", related_name="posts")
+    # total followers, ing
     def __str__(self):
         return self.title
 
@@ -57,6 +58,10 @@ class Post(models.Model):
     @property
     def total_comments(self):
         return self.comments.count()
+
+    # @property
+    # def total_comments(self):
+    #     return self.comments.count()
 
 
 class Like(models.Model):
@@ -79,15 +84,12 @@ class Comment(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="comments"
     )
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     comment_text = models.TextField()
     comment_date = models.DateTimeField(auto_now_add=True)
 
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey("content_type", "object_id")
-
     def __str__(self):
-        return f"{self.user} commented {self.content_object}"
+        return f"{self.user} commented {self.post} post"
 
 
 class Follow(models.Model):
