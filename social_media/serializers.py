@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from social_media import services
 from social_media.models import Profile, Like, Post, Follow, Comment
+from user.serializers import UserSerializer
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -35,6 +36,7 @@ class PostSerializer(serializers.ModelSerializer):
     #     source="airplane.all_places", read_only=True
     # )
     user = serializers.CharField(source="user.username", read_only=True)
+        is_following_author = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -48,6 +50,7 @@ class PostSerializer(serializers.ModelSerializer):
             "total_likes",
             "total_comments",
             # "is_liked",
+            "is_following_author",
         )
 
     def get_is_liked(self, obj) -> bool:
@@ -55,8 +58,19 @@ class PostSerializer(serializers.ModelSerializer):
         user = self.context.get("request").user
         return services.is_liked(obj, user)
 
+    def get_is_following_author(self, obj):
+        request = self.context.get("request")
+        user = request.user if request and hasattr(request, "user") else None
 
-class PostListSerializer(serializers.ModelSerializer):
+        if obj.user == user:
+            return "it's me"
+
+        if user and user.is_authenticated:
+            return Follow.objects.filter(follower=user, followed=obj.user).exists()
+        return False
+
+
+class PostListSerializer(PostSerializer):
     # add post instance
     # is_liked = serializers.SerializerMethodField()
     # total_comments = serializers.IntegerField(
@@ -76,6 +90,7 @@ class PostListSerializer(serializers.ModelSerializer):
             "total_likes",
             "total_comments",
             # "is_liked",
+            "is_following_author",
         )
 
     def get_is_liked(self, obj) -> bool:
@@ -190,7 +205,19 @@ class CommentListSerializer(serializers.ModelSerializer):
             "post_title",
             "comment_text",
             "comment_date",
-            # ?
+        )
+
+
+class CommentListProfileSerializer(serializers.ModelSerializer):
+    post_title = serializers.CharField(source="post.title", read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = (
+            "id",
+            "post_title",
+            "comment_text",
+            "comment_date",
         )
 
 
@@ -224,9 +251,20 @@ class EmptySerializer(serializers.Serializer):
 
 
 class FollowListSerializer(serializers.ModelSerializer):
-    follower = serializers.CharField(source="follower.username", read_only=True)
+    # follower = serializers.CharField(source="follower.username", read_only=True)
     followed = serializers.CharField(source="followed.username", read_only=True)
 
     class Meta:
         model = Follow
-        fields = ("id", "follower", "followed", "created_at")
+        fields = ("id", "followed", "created_at")
+
+
+class FollowDetailSerializer(serializers.ModelSerializer):
+    # follower = serializers.CharField(source="follower.username", read_only=True)
+    followed = UserSerializer(
+        many=False, read_only=True
+    )  # ProfileSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Follow
+        fields = ("id", "followed", "created_at")
