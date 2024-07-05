@@ -68,3 +68,5 @@ and
 posts of followed
 
 can follow in post and in profile
+
+in Post Instance - shouldn't access to edit

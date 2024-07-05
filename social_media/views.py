@@ -60,7 +60,7 @@ class UserPostsViewSet(viewsets.ModelViewSet):
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    # permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_serializer_class(self):
         # if self.action == "list":
@@ -72,13 +72,16 @@ class PostViewSet(viewsets.ModelViewSet):
         if self.action == "add_comment":
             return CommentSerializer
 
+        if self.action in ["follow_post_author", "unfollow_post_author"]:
+            return EmptySerializer
+
         return self.serializer_class
 
     def perform_create(self, serializer):
         serializer.save(user_id=self.request.user.id)
 
     @action(detail=True, methods=["post"], url_path="follow")
-    def follow_user(self, request, pk=None):
+    def follow_post_author(self, request, pk=None):
         post = self.get_object()
         author = post.user
 
@@ -100,6 +103,26 @@ class PostViewSet(viewsets.ModelViewSet):
         Follow.objects.create(follower=follower, followed=followee)
         return Response(
             {"detail": "Successfully followed user."}, status=status.HTTP_201_CREATED
+        )
+
+    @action(detail=True, methods=["post"], url_path="unfollow")
+    def unfollow_post_author(self, request, pk=None):
+        post = self.get_object()
+        author = post.user
+
+        follower = request.user
+        followee = author
+
+        if not Follow.objects.filter(follower=follower, followed=followee).exists():
+            return Response(
+                {"detail": "You are not following this user."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        Follow.objects.filter(follower=follower, followed=followee).delete()
+        return Response(
+            {"detail": "Successfully unfollowed user of the post."},
+            status=status.HTTP_204_NO_CONTENT,
         )
 
 

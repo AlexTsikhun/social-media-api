@@ -103,6 +103,8 @@ class PostDetailSerializer(PostSerializer):
     user = serializers.CharField(source="user.username", read_only=True)
     comments = serializers.SerializerMethodField()
     likes = LikeSerializer(many=True, read_only=True)
+    is_following_author = serializers.SerializerMethodField()
+
     # likes?
 
     class Meta:
@@ -114,7 +116,7 @@ class PostDetailSerializer(PostSerializer):
             "image",
             "content",
             "post_date",
-            "total_likes",
+            "is_following_author",
             "likes",
             "total_comments",
             "comments",
@@ -135,6 +137,17 @@ class PostDetailSerializer(PostSerializer):
     #     """Checks if `request.user` liked (`obj`) post."""
     #     user = self.context.get("request").user
     #     return services.is_liked(obj, user)
+
+    def get_is_following_author(self, obj):
+        request = self.context.get("request")
+        user = request.user if request and hasattr(request, "user") else None
+
+        if obj.user == user:
+            return "it's me"
+
+        if user and user.is_authenticated:
+            return Follow.objects.filter(follower=user, followed=obj.user).exists()
+        return False
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -192,6 +205,8 @@ class FollowSerializer(serializers.ModelSerializer):
 
 
 class EmptySerializer(serializers.Serializer):
+    """Serializer for click actions(follow)"""
+
     pass
 
 
