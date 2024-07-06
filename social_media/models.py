@@ -1,6 +1,7 @@
 import os
 import uuid
 
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -32,6 +33,14 @@ class Profile(models.Model):
     registration_date = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
 
+    @property
+    def total_followers(self):
+        return self.user.followees.count()
+
+    @property
+    def total_followees(self):
+        return self.user.followers.count()
+
     def __str__(self):
         return f"{self.user}'s profile"
 
@@ -46,7 +55,6 @@ class Post(models.Model):
     post_date = models.DateTimeField(auto_now_add=True)
     likes = GenericRelation("Like", related_name="posts")
 
-    # comments = GenericRelation("Comment", related_name="posts")
     # total followers, ing
     def __str__(self):
         return self.title
@@ -58,10 +66,6 @@ class Post(models.Model):
     @property
     def total_comments(self):
         return self.comments.count()
-
-    # @property
-    # def total_comments(self):
-    #     return self.comments.count()
 
 
 class Like(models.Model):
