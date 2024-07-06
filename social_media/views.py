@@ -8,7 +8,7 @@ from rest_framework import generics, mixins, views
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
-from social_media.mixins import LikedMixin
+from social_media.mixins import LikedMixin, FollowMixin, UnfollowMixin
 from social_media.models import Profile, Post, Like, Follow, Comment
 from social_media.serializers import (
     ProfileSerializer,
@@ -21,6 +21,10 @@ from social_media.serializers import (
     FollowSerializer,
     FollowListSerializer,
     EmptySerializer,
+    FollowDetailSerializer,
+    PostListSerializer,
+    CommentProfileSerializer,
+    CommentListProfileSerializer,
     # PostListSerializer,
 )
 
@@ -57,14 +61,14 @@ class UserPostsViewSet(viewsets.ModelViewSet):
         return self.serializer_class
 
 
-class PostViewSet(viewsets.ModelViewSet):
+class PostViewSet(FollowMixin, UnfollowMixin, viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    # permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_serializer_class(self):
-        # if self.action == "list":
-        #     return PostListSerializer
+        if self.action == "list":
+            return PostListSerializer
 
         if self.action == "retrieve":
             return PostDetailSerializer
@@ -84,49 +88,18 @@ class PostViewSet(viewsets.ModelViewSet):
     def follow_post_author(self, request, pk=None):
         post = self.get_object()
         author = post.user
-
-        follower = request.user
-        followee = author
-
-        if follower == followee:
-            return Response(
-                {"detail": "You cannot follow yourself."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if Follow.objects.filter(follower=follower, followed=followee).exists():
-            return Response(
-                {"detail": "You are already following this user."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        Follow.objects.create(follower=follower, followed=followee)
-        return Response(
-            {"detail": "Successfully followed user."}, status=status.HTTP_201_CREATED
-        )
+        return self._follow_author(request, author)
 
     @action(detail=True, methods=["post"], url_path="unfollow")
     def unfollow_post_author(self, request, pk=None):
         post = self.get_object()
         author = post.user
-
-        follower = request.user
-        followee = author
-
-        if not Follow.objects.filter(follower=follower, followed=followee).exists():
-            return Response(
-                {"detail": "You are not following this user."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        Follow.objects.filter(follower=follower, followed=followee).delete()
-        return Response(
-            {"detail": "Successfully unfollowed user of the post."},
-            status=status.HTTP_204_NO_CONTENT,
-        )
+        return self._unfollow_author(request, author)
 
 
 class CommentViewSet(
+    FollowMixin,
+    UnfollowMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
@@ -134,7 +107,7 @@ class CommentViewSet(
     GenericViewSet,
 ):
     queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
+    serializer_class = CommentProfileSerializer
     # permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
@@ -142,40 +115,27 @@ class CommentViewSet(
 
     def get_serializer_class(self):
         if self.action == "list":
-            return CommentListSerializer
+            return CommentListProfileSerializer
 
         if self.action == "retrieve":
             return CommentDetailSerializer
 
-        if self.action == "follow_user":
+        if self.action in ["follow_post_author", "unfollow_post_author"]:
             return EmptySerializer
 
         return self.serializer_class
 
     @action(detail=True, methods=["post"], url_path="follow")
-    def follow_user(self, request, pk=None):
+    def follow_post_author(self, request, pk=None):
         comment = self.get_object()
         author = comment.post.user
+        return self._follow_author(request, author)
 
-        follower = request.user
-        followee = author
-
-        if follower == followee:
-            return Response(
-                {"detail": "You cannot follow yourself."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if Follow.objects.filter(follower=follower, followed=followee).exists():
-            return Response(
-                {"detail": "You are already following this user."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        Follow.objects.create(follower=follower, followed=followee)
-        return Response(
-            {"detail": "Successfully followed user."}, status=status.HTTP_201_CREATED
-        )
+    @action(detail=True, methods=["post"], url_path="unfollow")
+    def unfollow_post_author(self, request, pk=None):
+        comment = self.get_object()
+        author = comment.post.user
+        return self._unfollow_author(request, author)
 
 
 class LikeViewSet(
@@ -203,6 +163,8 @@ class LikeViewSet(
 
 
 class FollowingViewSet(
+    FollowMixin,
+    UnfollowMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
@@ -222,9 +184,24 @@ class FollowingViewSet(
             return FollowListSerializer
 
         if self.action == "retrieve":
-            return CommentDetailSerializer
+            return FollowDetailSerializer
+
+        if self.action in ["follow_user", "unfollow_user"]:
+            return EmptySerializer
 
         return self.serializer_class
+
+    @action(detail=True, methods=["post"], url_path="follow")
+    def follow_user(self, request, pk=None):
+        follow = self.get_object()
+        user = follow.followed
+        return self._follow_author(request, user)
+
+    @action(detail=True, methods=["post"], url_path="unfollow")
+    def unfollow_user(self, request, pk=None):
+        follow = self.get_object()
+        user = follow.followed
+        return self._unfollow_author(request, user)
 
 
 class AddCommentView(APIView):
@@ -247,51 +224,3 @@ class AddCommentView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# class FollowUserView(generics.CreateAPIView):
-#     serializer_class = FollowSerializer
-#     # permission_classes = [permissions.IsAuthenticated]
-#
-#     def post(self, request, *args, **kwargs):
-#         followee_id = request.data.get("followee_id")
-#         if followee_id:
-#             follower = request.user
-#             followee = get_object_or_404(User, id=followee_id)
-#
-#             # Check if the user is already following the followee
-#             if Follower.objects.filter(follower=follower, followee=followee).exists():
-#                 return Response(
-#                     {"detail": "You are already following this user."},
-#                     status=status.HTTP_400_BAD_REQUEST,
-#                 )
-#
-#             Follower.objects.create(follower=follower, followee=followee)
-#             return Response(
-#                 {"detail": "Successfully followed user."},
-#                 status=status.HTTP_201_CREATED,
-#             )
-#         else:
-#             return Response(
-#                 {"detail": "followee_id must be provided."},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-#
-#
-# class UnfollowUserView(generics.DestroyAPIView):
-#     queryset = Follower.objects.all()
-#     serializer_class = FollowerSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-#
-#     def delete(self, request, *args, **kwargs):
-#         followee_id = kwargs.get("followee_id")
-#         follower = request.user
-#         followee = get_object_or_404(User, id=followee_id)
-#
-#         # Check if the user is following the followee
-#         instance = get_object_or_404(Follower, follower=follower, followee=followee)
-#         self.perform_destroy(instance)
-#         return Response(
-#             {"detail": "Successfully unfollowed user."},
-#             status=status.HTTP_204_NO_CONTENT,
-#         )
