@@ -36,7 +36,7 @@ class PostSerializer(serializers.ModelSerializer):
     #     source="airplane.all_places", read_only=True
     # )
     user = serializers.CharField(source="user.username", read_only=True)
-        is_following_author = serializers.SerializerMethodField()
+    is_following_author = serializers.SerializerMethodField()
 
     class Meta:
         model = Post

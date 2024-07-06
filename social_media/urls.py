@@ -26,8 +26,8 @@ r.register("user-following", FollowingViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("profile/", include(r.urls)),
     path("profile/", RetrieveProfile.as_view()),
+    path("profile/", include(r.urls)),
     path(
         "profile/user-posts/<int:post_id>/add_comment/",
         AddCommentView.as_view(),
@@ -39,5 +39,3 @@ urlpatterns = [
         name="add-comment",
     ),
 ]
-# how to delete user from serializer - use perform create
-# all posts, followed posts
