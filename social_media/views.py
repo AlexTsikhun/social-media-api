@@ -34,7 +34,7 @@ from social_media.serializers import (
 )
 
 
-class RetrieveProfile(generics.ListAPIView):
+class RetrieveProfile(generics.ListAPIView, generics.UpdateAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
@@ -54,8 +54,8 @@ class UserPostsViewSet(viewsets.ModelViewSet):
         serializer.save(user_id=self.request.user.id)
 
     def get_serializer_class(self):
-        if self.action == "list":
-            return PostListSerializer
+        # if self.action == "list":
+        #     return PostListSerializer
 
         if self.action == "retrieve":
             return PostDetailSerializer
