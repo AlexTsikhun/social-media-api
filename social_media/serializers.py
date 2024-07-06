@@ -72,7 +72,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 class PostListSerializer(PostSerializer):
     # add post instance
-    # is_liked = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
     # total_comments = serializers.IntegerField(
     #     source="airplane.all_places", read_only=True
     # )
@@ -87,9 +87,9 @@ class PostListSerializer(PostSerializer):
             "image",
             "content",
             "post_date",
+            "is_liked",
             "total_likes",
             "total_comments",
-            # "is_liked",
             "is_following_author",
         )
 
@@ -114,9 +114,9 @@ class LikeSerializer(serializers.ModelSerializer):
 
 class PostDetailSerializer(PostSerializer):
     # add post instance
-    # is_liked = serializers.SerializerMethodField()
     user = serializers.CharField(source="user.username", read_only=True)
     comments = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
     likes = LikeSerializer(many=True, read_only=True)
     is_following_author = serializers.SerializerMethodField()
 
@@ -132,10 +132,10 @@ class PostDetailSerializer(PostSerializer):
             "content",
             "post_date",
             "is_following_author",
+            "is_liked",
             "likes",
             "total_comments",
             "comments",
-            # "is_liked",
         )
 
     def get_comments(self, post):
@@ -143,15 +143,10 @@ class PostDetailSerializer(PostSerializer):
         serializer = CommentSerializer(comments, many=True)
         return serializer.data
 
-    def get_likes(self, post):
-        likes = post.user.comments.filter(post=post.id)
-        serializer = CommentSerializer(comments, many=True)
-        return serializer.data
-
-    # def get_is_liked(self, obj) -> bool:
-    #     """Checks if `request.user` liked (`obj`) post."""
-    #     user = self.context.get("request").user
-    #     return services.is_liked(obj, user)
+    def get_is_liked(self, obj) -> bool:
+        """Checks if `request.user` liked (`obj`) post."""
+        user = self.context.get("request").user
+        return services.is_liked(obj, user)
 
     def get_is_following_author(self, obj):
         request = self.context.get("request")
