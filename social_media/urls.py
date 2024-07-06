@@ -8,8 +8,10 @@ from social_media.views import (
     CommentViewSet,
     RetrieveProfile,
     UserPostsViewSet,
-    AddCommentView,
+    AddCommentAPIView,
     FollowingViewSet,
+    AddLikeAPIView,
+    AddUnLikeAPIView,
 )
 
 app_name = "social_media"
@@ -30,12 +32,32 @@ urlpatterns = [
     path("profile/", include(r.urls)),
     path(
         "profile/user-posts/<int:post_id>/add_comment/",
-        AddCommentView.as_view(),
+        AddCommentAPIView.as_view(),
         name="add-comment",
     ),
     path(
         "posts/<int:post_id>/add_comment/",
-        AddCommentView.as_view(),
+        AddCommentAPIView.as_view(),
         name="add-comment",
+    ),
+    path(
+        "posts/<int:post_id>/like/",
+        AddLikeAPIView.as_view(),
+        name="add-like",
+    ),
+    path(
+        "profile/user-posts/<int:post_id>/like/",
+        AddLikeAPIView.as_view(),
+        name="add-like",
+    ),
+    path(
+        "posts/<int:post_id>/unlike/",
+        AddUnLikeAPIView.as_view(),
+        name="unlike",
+    ),
+    path(
+        "profile/user-posts/<int:post_id>/unlike/",
+        AddUnLikeAPIView.as_view(),
+        name="unlike",
     ),
 ]

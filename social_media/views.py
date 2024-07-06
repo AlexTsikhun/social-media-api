@@ -8,7 +8,14 @@ from rest_framework import generics, mixins, views
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
-from social_media.mixins import LikedMixin, FollowMixin, UnfollowMixin
+from social_media import services
+from social_media.mixins import (
+    LikedMixin,
+    FollowMixin,
+    UnfollowMixin,
+    LikeFromPostMixin,
+    LikeFromProfileMixin,
+)
 from social_media.models import Profile, Post, Like, Follow, Comment
 from social_media.serializers import (
     ProfileSerializer,
@@ -138,30 +145,6 @@ class CommentViewSet(
         return self._unfollow_author(request, author)
 
 
-class LikeViewSet(
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.ListModelMixin,
-    GenericViewSet,
-):
-    queryset = Like.objects.all()
-    serializer_class = LikeSerializer
-    # permission_classes = (IsAuthenticatedOrReadOnly,)
-
-    def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
-
-    def get_serializer_class(self):  #!!!!
-        if self.action == "list":
-            return CommentListSerializer
-
-        if self.action == "retrieve":
-            return CommentDetailSerializer
-
-        return self.serializer_class
-
-
 class FollowingViewSet(
     FollowMixin,
     UnfollowMixin,
@@ -204,7 +187,7 @@ class FollowingViewSet(
         return self._unfollow_author(request, user)
 
 
-class AddCommentView(APIView):
+class AddCommentAPIView(APIView):
     def post(self, request, post_id):
         try:
             post = Post.objects.get(pk=post_id)
@@ -224,3 +207,33 @@ class AddCommentView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AddLikeAPIView(APIView):
+    def post(self, request, post_id):
+        try:
+            post = Post.objects.get(pk=post_id)
+        except Post.DoesNotExist:
+            return Response(
+                {"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+        services.add_like(post, request.user)
+
+        return Response(
+            {"message": "Like added successfully"}, status=status.HTTP_200_OK
+        )
+
+
+class AddUnLikeAPIView(APIView):
+    def post(self, request, post_id):
+        try:
+            post = Post.objects.get(pk=post_id)
+        except Post.DoesNotExist:
+            return Response(
+                {"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        services.remove_like(post, request.user)
+        return Response(
+            {"message": "Like removed successfully"}, status=status.HTTP_200_OK
+        )
