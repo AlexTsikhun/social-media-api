@@ -194,13 +194,13 @@ class FollowingViewSet(
     @action(detail=True, methods=["post"], url_path="follow")
     def follow_user(self, request, pk=None):
         follow = self.get_object()
-        user = follow.followed
+        user = follow.followee
         return self._follow_author(request, user)
 
     @action(detail=True, methods=["post"], url_path="unfollow")
     def unfollow_user(self, request, pk=None):
         follow = self.get_object()
-        user = follow.followed
+        user = follow.followee
         return self._unfollow_author(request, user)
 
 

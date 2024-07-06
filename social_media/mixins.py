@@ -11,7 +11,7 @@ class LikedMixin:
 
     @action(methods=["POST"], detail=True)
     def like(self, request, pk=None):
-        """Лайкает `obj`."""
+        """Liking `obj'."""
         obj = self.get_object()  # return post model
         services.add_like(obj, request.user)
         return Response(
@@ -21,7 +21,7 @@ class LikedMixin:
 
     @action(methods=["POST"], detail=True)
     def unlike(self, request, pk=None):
-        """Удаляет лайк с `obj`."""
+        """Removes the likes from `obj`."""
         obj = self.get_object()
         services.remove_like(obj, request.user)
         return Response(
@@ -30,7 +30,7 @@ class LikedMixin:
 
     @action(methods=["GET"], detail=True)
     def likes(self, request, pk=None):
-        """Получает всех пользователей, которые лайкнули `obj`."""
+        """Gets all users who have liked `obj`."""
         obj = self.get_object()
         likes = services.get_likes(obj)
         serializer = UserSerializer(likes, many=True)
@@ -52,6 +52,14 @@ class LikedMixin:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class LikeFromProfileMixin(LikedMixin):
+    pass
+
+
+class LikeFromPostMixin(LikedMixin):
+    pass
+
+
 class FollowMixin:
     def _follow_author(self, request, author):
         follower = request.user
@@ -63,13 +71,13 @@ class FollowMixin:
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if Follow.objects.filter(follower=follower, followed=followee).exists():
+        if Follow.objects.filter(follower=follower, followee=followee).exists():
             return Response(
                 {"detail": "You are already following this user."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        Follow.objects.create(follower=follower, followed=followee)
+        Follow.objects.create(follower=follower, followee=followee)
         return Response(
             {"detail": "Successfully followed user."}, status=status.HTTP_201_CREATED
         )
@@ -80,13 +88,13 @@ class UnfollowMixin:
         follower = request.user
         followee = author
 
-        if not Follow.objects.filter(follower=follower, followed=followee).exists():
+        if not Follow.objects.filter(follower=follower, followee=followee).exists():
             return Response(
                 {"detail": "You are not following this user."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        Follow.objects.filter(follower=follower, followed=followee).delete()
+        Follow.objects.filter(follower=follower, followee=followee).delete()
         return Response(
             {"detail": "Successfully unfollowed user."},
             status=status.HTTP_204_NO_CONTENT,

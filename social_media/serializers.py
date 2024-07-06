@@ -66,7 +66,7 @@ class PostSerializer(serializers.ModelSerializer):
             return "it's me"
 
         if user and user.is_authenticated:
-            return Follow.objects.filter(follower=user, followed=obj.user).exists()
+            return Follow.objects.filter(follower=user, followee=obj.user).exists()
         return False
 
 
@@ -161,7 +161,7 @@ class PostDetailSerializer(PostSerializer):
             return "it's me"
 
         if user and user.is_authenticated:
-            return Follow.objects.filter(follower=user, followed=obj.user).exists()
+            return Follow.objects.filter(follower=user, followee=obj.user).exists()
         return False
 
 
@@ -180,7 +180,6 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class CommentProfileSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Comment
         fields = (
@@ -241,7 +240,7 @@ class CommentDetailSerializer(serializers.ModelSerializer):
 class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
-        fields = ("id", "follower", "followed", "created_at")
+        fields = ("id", "follower", "followee", "created_at")
 
 
 class EmptySerializer(serializers.Serializer):
@@ -252,19 +251,19 @@ class EmptySerializer(serializers.Serializer):
 
 class FollowListSerializer(serializers.ModelSerializer):
     # follower = serializers.CharField(source="follower.username", read_only=True)
-    followed = serializers.CharField(source="followed.username", read_only=True)
+    followee = serializers.CharField(source="followee.username", read_only=True)
 
     class Meta:
         model = Follow
-        fields = ("id", "followed", "created_at")
+        fields = ("id", "followee", "created_at")
 
 
 class FollowDetailSerializer(serializers.ModelSerializer):
     # follower = serializers.CharField(source="follower.username", read_only=True)
-    followed = UserSerializer(
+    followee = UserSerializer(
         many=False, read_only=True
     )  # ProfileSerializer(many=False, read_only=True)
 
     class Meta:
         model = Follow
-        fields = ("id", "followed", "created_at")
+        fields = ("id", "followee", "created_at")
