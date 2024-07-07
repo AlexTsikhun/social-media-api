@@ -104,7 +104,6 @@ class LikeSerializer(serializers.ModelSerializer):
             "id",
             "user",
             "like_date",
-            # ?
         )
 
 
@@ -238,8 +237,7 @@ class EmptySerializer(serializers.Serializer):
     pass
 
 
-class FollowListSerializer(serializers.ModelSerializer):
-    # follower = serializers.CharField(source="follower.username", read_only=True)
+class FollowingListSerializer(FollowSerializer):
     followee = serializers.CharField(source="followee.username", read_only=True)
 
     class Meta:
@@ -247,12 +245,25 @@ class FollowListSerializer(serializers.ModelSerializer):
         fields = ("id", "followee", "created_at")
 
 
-class FollowDetailSerializer(serializers.ModelSerializer):
-    # follower = serializers.CharField(source="follower.username", read_only=True)
-    followee = UserSerializer(
-        many=False, read_only=True
-    )  # ProfileSerializer(many=False, read_only=True)
+class FollowerListSerializer(FollowSerializer):
+    follower = serializers.CharField(source="follower.username", read_only=True)
+
+    class Meta:
+        model = Follow
+        fields = ("id", "follower", "created_at")
+
+
+class FollowingDetailSerializer(serializers.ModelSerializer):
+    followee = UserSerializer(many=False, read_only=True)
 
     class Meta:
         model = Follow
         fields = ("id", "followee", "created_at")
+
+
+class FollowerDetailSerializer(serializers.ModelSerializer):
+    follower = UserSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Follow
+        fields = ("id", "follower", "created_at")

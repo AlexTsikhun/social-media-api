@@ -11,6 +11,7 @@ from social_media.views import (
     AddCommentAPIView,
     FollowingViewSet,
     ToggleLikeAPIView,
+    FollowersViewSet,
 )
 
 app_name = "social_media"
@@ -21,7 +22,8 @@ router.register("posts", PostViewSet)
 r = routers.DefaultRouter()
 r.register("user-posts", UserPostsViewSet)
 r.register("user-comments", CommentViewSet)
-r.register("user-following", FollowingViewSet)
+r.register("user-following", FollowingViewSet, basename="user-following")
+r.register("user-followers", FollowersViewSet, basename="user-followers")
 # r.register("add-like", UserPostsViewSet)
 
 

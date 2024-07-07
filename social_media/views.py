@@ -30,12 +30,14 @@ from social_media.serializers import (
     CommentDetailSerializer,
     LikeSerializer,
     FollowSerializer,
-    FollowListSerializer,
+    FollowingListSerializer,
     EmptySerializer,
-    FollowDetailSerializer,
+    FollowingDetailSerializer,
     PostListSerializer,
     CommentProfileSerializer,
     CommentListProfileSerializer,
+    FollowerDetailSerializer,
+    FollowerListSerializer,
     # PostListSerializer,
 )
 
@@ -175,16 +177,15 @@ class FollowingViewSet(
     serializer_class = FollowSerializer
     permission_classes = (IsAuthorOrReadOnly,)
 
-    # following list filtered show id for all user, I need personal (and comment)
     def get_queryset(self):
         return self.queryset.filter(follower=self.request.user)
 
     def get_serializer_class(self):
         if self.action == "list":
-            return FollowListSerializer
+            return FollowingListSerializer
 
         if self.action == "retrieve":
-            return FollowDetailSerializer
+            return FollowingDetailSerializer
 
         if self.action in ["follow_user", "unfollow_user"]:
             return EmptySerializer
@@ -201,6 +202,47 @@ class FollowingViewSet(
     def unfollow_user(self, request, pk=None):
         follow = self.get_object()
         user = follow.followee
+        return self._unfollow_author(request, user)
+
+
+class FollowersViewSet(
+    FollowMixin,
+    UnfollowMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
+    queryset = Follow.objects.all()
+    serializer_class = FollowSerializer
+    permission_classes = (IsAuthorOrReadOnly,)
+
+    def get_queryset(self):
+        return self.queryset.filter(followee=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return FollowerListSerializer
+
+        if self.action == "retrieve":
+            return FollowerDetailSerializer
+
+        if self.action in ["follow_user", "unfollow_user"]:
+            return EmptySerializer
+
+        return self.serializer_class
+
+    @action(detail=True, methods=["post"], url_path="follow")
+    def follow_user(self, request, pk=None):
+        follow = self.get_object()
+        user = follow.follower
+        return self._follow_author(request, user)
+
+    @action(detail=True, methods=["post"], url_path="unfollow")
+    def unfollow_user(self, request, pk=None):
+        follow = self.get_object()
+        user = follow.follower
         return self._unfollow_author(request, user)
 
 
