@@ -15,7 +15,6 @@ from rest_framework.viewsets import GenericViewSet
 
 from social_media import services
 from social_media.mixins import (
-    LikedMixin,
     FollowMixin,
     UnfollowMixin,
 )
@@ -105,8 +104,8 @@ class PostViewSet(FollowMixin, UnfollowMixin, viewsets.ModelViewSet):
         if self.action == "add_comment":
             return CommentSerializer
 
-        if self.action == "follow_post_author":  # , "unfollow_post_author"]:
-            return None
+        if self.action in ["follow_post_author", "unfollow_post_author"]:
+            return EmptySerializer
 
         return self.serializer_class
 
@@ -261,22 +260,20 @@ class AddCommentAPIView(APIView):
     def post(self, request, post_id):
         try:
             post = Post.objects.get(pk=post_id)
-            comment = Comment.objects.create(
-                user=request.user,
-                post=post,
-                comment_text=request.data.get("comment_text"),
-            )
         except Post.DoesNotExist:
             return Response(
                 {"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
-        serializer = CommentSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user, post=post)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        comment_data = {
+            "user": request.user,
+            "post": post,
+            "comment_text": request.data.get("comment_text"),
+        }
+        serializer = CommentSerializer(data=comment_data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user, post=post)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class ToggleLikeAPIView(APIView):
