@@ -13,7 +13,10 @@ class IsAuthorOrReadOnly(BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        if hasattr(obj, "follower"):
+        if hasattr(obj, "follower") and obj.follower == request.user:
             return obj.follower == request.user
+
+        if hasattr(obj, "followee") and obj.followee == request.user:
+            return obj.followee == request.user
 
         return obj.user == request.user
