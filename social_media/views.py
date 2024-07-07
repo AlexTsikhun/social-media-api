@@ -2,7 +2,12 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, viewsets, serializers, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+    IsAdminUser,
+    AllowAny,
+)
 from rest_framework.response import Response
 from rest_framework import generics, mixins, views
 from rest_framework.views import APIView
@@ -15,6 +20,7 @@ from social_media.mixins import (
     UnfollowMixin,
 )
 from social_media.models import Profile, Post, Like, Follow, Comment
+from social_media.permissions import IsAuthorOrReadOnly
 from social_media.serializers import (
     ProfileSerializer,
     PostSerializer,
@@ -37,6 +43,7 @@ from social_media.serializers import (
 class RetrieveProfile(generics.ListAPIView, generics.UpdateAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+    permission_classes = (IsAuthorOrReadOnly,)
 
     def get_queryset(self):
         """ListAPIView with user filtering - like RetrieveAPIView (detail url not suitable)"""
@@ -46,6 +53,7 @@ class RetrieveProfile(generics.ListAPIView, generics.UpdateAPIView):
 class UserPostsViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    permission_classes = (IsAuthorOrReadOnly,)
 
     def get_queryset(self):
         return self.queryset.filter(user_id=self.request.user.id)
@@ -69,7 +77,12 @@ class UserPostsViewSet(viewsets.ModelViewSet):
 class PostViewSet(FollowMixin, UnfollowMixin, viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    # permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthorOrReadOnly,)
+
+    def get_permissions(self):
+        if self.action in ["follow_post_author", "unfollow_post_author"]:
+            return (IsAuthenticated(),)
+        return super().get_permissions()
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -113,7 +126,13 @@ class CommentViewSet(
 ):
     queryset = Comment.objects.all()
     serializer_class = CommentProfileSerializer
-    # permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthorOrReadOnly,)  # for enter profile - it should be user
+
+    def get_permissions(self):
+        """write this method to explicitly, it no mandatory"""
+        if self.action in ["follow_post_author", "unfollow_post_author"]:
+            return (IsAuthenticated(),)
+        return super().get_permissions()
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
@@ -154,8 +173,8 @@ class FollowingViewSet(
 ):
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
+    permission_classes = (IsAuthorOrReadOnly,)
 
-    # permission_classes = (IsAuthenticatedOrReadOnly,)
     # following list filtered show id for all user, I need personal (and comment)
     def get_queryset(self):
         return self.queryset.filter(follower=self.request.user)
