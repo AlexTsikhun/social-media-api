@@ -18,6 +18,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             "bio",
             "user",
             "profile_picture",
+            "total_followers",
+            "total_followees",
             "registration_date",
             "last_login",
             "my_posts",
@@ -25,16 +27,13 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_my_posts(self, profile):
         posts = profile.user.posts.all()
-        serializer = PostSerializer(posts, many=True)
+        serializer = PostListSerializer(posts, many=True)
         return serializer.data
 
 
 class PostSerializer(serializers.ModelSerializer):
     # add post instance
-    # is_liked = serializers.SerializerMethodField()
-    # total_comments = serializers.IntegerField(
-    #     source="airplane.all_places", read_only=True
-    # )
+    is_liked = serializers.SerializerMethodField()
     user = serializers.CharField(source="user.username", read_only=True)
     is_following_author = serializers.SerializerMethodField()
 
@@ -47,9 +46,9 @@ class PostSerializer(serializers.ModelSerializer):
             "image",
             "content",
             "post_date",
+            "is_liked",
             "total_likes",
             "total_comments",
-            # "is_liked",
             "is_following_author",
         )
 
@@ -72,10 +71,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 class PostListSerializer(PostSerializer):
     # add post instance
-    is_liked = serializers.SerializerMethodField()
-    # total_comments = serializers.IntegerField(
-    #     source="airplane.all_places", read_only=True
-    # )
+    # is_liked = serializers.SerializerMethodField()
     user = serializers.CharField(source="user.username", read_only=True)
 
     class Meta:
@@ -87,7 +83,7 @@ class PostListSerializer(PostSerializer):
             "image",
             "content",
             "post_date",
-            "is_liked",
+            # "is_liked",
             "total_likes",
             "total_comments",
             "is_following_author",
@@ -119,8 +115,6 @@ class PostDetailSerializer(PostSerializer):
     is_liked = serializers.SerializerMethodField()
     likes = LikeSerializer(many=True, read_only=True)
     is_following_author = serializers.SerializerMethodField()
-
-    # likes?
 
     class Meta:
         model = Post
