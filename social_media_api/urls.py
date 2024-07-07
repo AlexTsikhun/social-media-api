@@ -26,4 +26,5 @@ urlpatterns = [
         "api/v1/social_media/", include("social_media.urls", namespace="social_media")
     ),
     path("api/v1/user/", include("user.urls", namespace="user")),
+    path("__debug__/", include("debug_toolbar.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
