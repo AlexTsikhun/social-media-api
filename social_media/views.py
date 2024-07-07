@@ -42,7 +42,7 @@ from social_media.serializers import (
 )
 
 
-class RetrieveProfile(generics.ListAPIView, generics.UpdateAPIView):
+class RetrieveProfileAPIView(generics.ListAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = (IsAuthorOrReadOnly,)
@@ -50,6 +50,15 @@ class RetrieveProfile(generics.ListAPIView, generics.UpdateAPIView):
     def get_queryset(self):
         """ListAPIView with user filtering - like RetrieveAPIView (detail url not suitable)"""
         return self.queryset.filter(user=self.request.user)
+
+
+class UpdateProfileAPIView(generics.UpdateAPIView):
+    """No need to override get_queryset bc it's profile page"""
+
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    permission_classes = (IsAuthorOrReadOnly,)
+    lookup_field = "user_id"
 
 
 class UserPostsViewSet(viewsets.ModelViewSet):
@@ -96,8 +105,8 @@ class PostViewSet(FollowMixin, UnfollowMixin, viewsets.ModelViewSet):
         if self.action == "add_comment":
             return CommentSerializer
 
-        if self.action in ["follow_post_author", "unfollow_post_author"]:
-            return EmptySerializer
+        if self.action == "follow_post_author":  # , "unfollow_post_author"]:
+            return None
 
         return self.serializer_class
 

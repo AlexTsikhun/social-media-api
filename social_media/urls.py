@@ -1,17 +1,17 @@
-from rest_framework import routers
 from django.urls import path, include
-from rest_framework_nested import routers as nested_routers
+from rest_framework import routers
 
 from social_media.views import (
     # ProfileViewSet,
     PostViewSet,
     CommentViewSet,
-    RetrieveProfile,
+    RetrieveProfileAPIView,
     UserPostsViewSet,
     AddCommentAPIView,
     FollowingViewSet,
     ToggleLikeAPIView,
     FollowersViewSet,
+    UpdateProfileAPIView,
 )
 
 app_name = "social_media"
@@ -19,18 +19,17 @@ app_name = "social_media"
 router = routers.DefaultRouter()
 router.register("posts", PostViewSet)
 
-r = routers.DefaultRouter()
-r.register("user-posts", UserPostsViewSet)
-r.register("user-comments", CommentViewSet)
-r.register("user-following", FollowingViewSet, basename="user-following")
-r.register("user-followers", FollowersViewSet, basename="user-followers")
-# r.register("add-like", UserPostsViewSet)
-
+profile_router = routers.DefaultRouter()
+profile_router.register("user-posts", UserPostsViewSet)
+profile_router.register("user-comments", CommentViewSet)
+profile_router.register("user-following", FollowingViewSet, basename="user-following")
+profile_router.register("user-followers", FollowersViewSet, basename="user-followers")
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("profile/", RetrieveProfile.as_view()),
-    path("profile/", include(r.urls)),
+    path("profile/", RetrieveProfileAPIView.as_view()),
+    path("profile/<int:user_id>/", UpdateProfileAPIView.as_view()),
+    path("profile/", include(profile_router.urls)),
     path(
         "profile/user-posts/<int:post_id>/add_comment/",
         AddCommentAPIView.as_view(),
