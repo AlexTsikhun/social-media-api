@@ -205,6 +205,8 @@ class FollowingViewSet(
 
 
 class AddCommentAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request, post_id):
         try:
             post = Post.objects.get(pk=post_id)
@@ -227,6 +229,8 @@ class AddCommentAPIView(APIView):
 
 
 class ToggleLikeAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request, post_id):
         try:
             post = Post.objects.get(pk=post_id)
