@@ -1,72 +1,169 @@
-Social Media API
+# Social Media API
 
-Description:
+The Airport RESTful API for a social media platform. The API allows users to create profiles, follow other users, create and view posts, manage likes and comments, and perform basic social media actions.
 
-You are tasked with building a RESTful API for a social media platform. The API should allow users to create profiles, follow other users, create and view posts, manage likes and comments, and perform basic social media actions.
+## Table of Contents
 
-Requirements:
+- [Installation](#installation)
+- [Run with docker](#run-with-docker)
+- [Getting access](#getting-access)
+- [Technologies Used](#technologies-used)
+- [Features](#features)
+- [General Features](#general-features)
+- [DB Structure](#db-structure)
+- [An example of using the API](#an-example-of-using-the-api)
+
+## Installation
+
+Install PostgreSQL and create db
+
+```bash
+git clone https://github.com/AlexTsikhun/social-media-api
+cd social-media-api
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+# for postgres set env variables
+python3 manage.py makemigations
+python3 manage.py migate
+python3 manage.py runserver
+
+```
+
+## Run with docker
+Docker should be installed locally (no need to install Postgres)
+
+```bash
+docker compose build
+docker compose up
+```
+
+## Getting access
+
+- Create user via `api/v1/user/register/`
+- Get access token `api/v1/user/token/`
+- API Root `api/v1/social_media/`
+
+## Technologies Used
+
+- Django, DRF
+- PostgreSQL (for production), Sqlite3 (for test)
+- Docker, docker compose
+- Unittest
+
+## Features:
+- schedule Post creation using Celery
+- Using Django Signals when creating a user, a profile is created automatically 
+- JWT authenticated
+- Admin panel `/admin/`
+- Documentation is located at `api/doc/swagger-ui/` or `api/doc/redoc/`
+- Managing Profile and Posts
+- Used fat models for create Posts, Likes and add Comments
+- Filtering followers, following
+- Throttling, Pagination for Posts, Adding profile and post images  
+- Validation for Flight.....
+
+### General Features
 
 User Registration and Authentication:
-Users should be able to register with their email and password to create an account.
-Users should be able to login with their credentials and receive a token for authentication.
-Users should be able to logout and invalidate their token.
+
+- Users can register with their email and password to create an account.
+
+- Users can log in with their credentials and receive a token for authentication.
+
+- Users can log out and invalidate their token.
 
 User Profile:
 
-Users should be able to create and update their profile, including profile picture, bio, and other details.
-Users should be able to retrieve their own profile and view profiles of other users.
-Users should be able to search for users by username or other criteria.
+- Users can create and update their profile, including profile picture, bio, and other details.
+
+- Users can retrieve their own profile and view profiles of other users.
+
+- Users can search for users by username or other criteria.
 
 Follow/Unfollow:
 
-Users should be able to follow and unfollow other users.
-Users should be able to view the list of users they are following and the list of users following them.
+- Users can follow and unfollow other users.
+
+- Users can view the list of users they are following and the list of users following them.
 
 Post Creation and Retrieval:
 
-Users should be able to create new posts with text content and optional media attachments (e.g., images). (Adding images is optional task)
-Users should be able to get their own posts and posts of users they are following.
-Users should be able to get posts by hashtags or other criteria.
+- Users can create new posts with text content and optional media attachments (e.g., images).
 
-Likes and Comments (Optional):
-Users should be able to like and unlike posts. Users should be able to view the list of posts they have liked. Users should be able to add comments to posts and view comments on posts.
+- Users can get their own posts and posts of users they are following.
 
-Schedule Post creation using Celery (Optional):
-Add possibility to schedule Post creation (you can select the time to create the Post before creating of it).
+- Users can get posts by hashtags or other criteria.
+
+Likes and Comments:
+
+- Users can like and unlike posts. Users can view the list of posts they have liked. Users can add comments to posts and view comments on posts.
+
+Schedule Post creation using Celery:
+
+- Added possibility to schedule Post creation (you can select the time to create the Post before creating of it).
 
 API Permissions:
 
-Only authenticated users should be able to perform actions such as creating posts, liking posts, and following/unfollowing users.
-Users should only be able to update and delete their own posts and comments.
-Users should only be able to update and delete their own profile.
+- Only authenticated users can perform actions such as creating posts, liking posts, and following/unfollowing users.
+
+- Users can only be able to update and delete their own posts and comments.
+
+- Users should only be able to update and delete their own profile.
+
 API Documentation:
-The API should be well-documented with clear instructions on how to use each endpoint.
-The documentation should include sample API requests and responses for different endpoints.
+
+- The API is well-documented with clear instructions on how to use each endpoint.
+
+- The documentation is included sample API requests and responses for different endpoints.
 
 Technical Requirements:
 
-Use Django and Django REST framework to build the API.
-Use token-based authentication for user authentication.
-Use appropriate serializers for data validation and representation.
-Use appropriate views and viewsets for handling CRUD operations on models.
-Use appropriate URL routing for different API endpoints.
-Use appropriate permissions and authentication classes to implement API permissions.
-Follow best practices for RESTful API design and documentation.
+- Used Django and Django REST framework to build the API.
 
-Note: You are not required to implement a frontend interface for this task. Focus on building a well-structured and well-documented RESTful API using Django and Django REST framework. This task will test the junior DRF developer's skills in building RESTful APIs, handling authentication and permissions, working with models, serializers, views, and viewsets, and following best practices for API design and documentation.
+- Used token-based authentication for user authentication.
 
-think, that split user/profile is ok!
+- Used appropriate serializers for data validation and representation.
 
-user can have many posts
+- Used appropriate views and viewsets for handling CRUD operations on models.
 
-in profile total tikes?
+- Used appropriate URL routing for different API endpoints.
 
-used fat models
+- Used appropriate permissions and authentication classes to implement API permissions.
 
-profile -> post -- my posts
-and 
-posts of followed
+- Followed best practices for RESTful API design and documentation.
 
-can follow in post and in profile
+#### DB Structure:
 
-in Post Instance - shouldn't access to edit
+.....
+
+### An example of using the API
+
+A list of some of the main endpoints
+
+....
+
+<details style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px">
+<summary style="font-size: 1.17em; font-weight: bold; ">toDo</summary>
+
+- mention signal
+- profile -> post -- my posts
+- and posts of followed
+- can follow in post and in profile - CREATE PROfILE!!!
+
+- delete all user fields in my profile
+
+- followers - follow creators; followees - who are followed by creators 
+ 
+- чи тре пермішина якщо нема екшинів 
+
+- following list filtered show id for all user, I need personal (and comment)
+
+- thro, celery, tests
+
+- profile/user-posts/ - no permission, show. deny acces in this endpoi
+
+- pagination in my profile, for my posts (not for prof, for pagin)
+- Filtering followers, following
+
+</details>
