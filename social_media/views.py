@@ -187,7 +187,7 @@ class CommentViewSet(
         return redirect(profile_url)
 
 
-class FollowingViewSet(
+class MyProfileFollowingViewSet(
     FollowMixin,
     UnfollowMixin,
     mixins.RetrieveModelMixin,
@@ -235,7 +235,7 @@ class FollowingViewSet(
         return redirect(profile_url)
 
 
-class FollowersViewSet(
+class MyProfileFollowersViewSet(
     FollowMixin,
     UnfollowMixin,
     mixins.RetrieveModelMixin,
@@ -250,6 +250,107 @@ class FollowersViewSet(
 
     def get_queryset(self):
         return self.queryset.filter(followee=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return FollowerListSerializer
+
+        if self.action == "retrieve":
+            return FollowerDetailSerializer
+
+        if self.action in ["follow_user", "unfollow_user"]:
+            return EmptySerializer
+
+        return self.serializer_class
+
+    @action(detail=True, methods=["post"], url_path="follow")
+    def follow_user(self, request, pk=None):
+        follow = self.get_object()
+        user = follow.follower
+        return self._follow_author(request, user)
+
+    @action(detail=True, methods=["post"], url_path="unfollow")
+    def unfollow_user(self, request, pk=None):
+        follow = self.get_object()
+        user = follow.follower
+        return self._unfollow_author(request, user)
+
+    @action(detail=True, methods=["get"])
+    def redirect_to_profile(self, request, pk=None):
+        follow = self.get_object()
+        user_username = follow.follower.username
+        profile_url = f"/api/v1/social_media/profile/{user_username}"
+        return redirect(profile_url)
+
+
+# a!!!!
+
+
+class FollowingViewSet(
+    FollowMixin,
+    UnfollowMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
+    queryset = Follow.objects.all()
+    serializer_class = FollowSerializer
+    permission_classes = (IsAuthorOrReadOnly,)
+
+    def get_queryset(self):
+        username = self.kwargs["username"]
+        return self.queryset.filter(follower__username=username)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return FollowingListSerializer
+
+        if self.action == "retrieve":
+            return FollowingDetailSerializer
+
+        if self.action in ["follow_user", "unfollow_user"]:
+            return EmptySerializer
+
+        return self.serializer_class
+
+    @action(detail=True, methods=["post"], url_path="follow")
+    def follow_user(self, request, pk=None):
+        follow = self.get_object()
+        user = follow.followee
+        return self._follow_author(request, user)
+
+    @action(detail=True, methods=["post"], url_path="unfollow")
+    def unfollow_user(self, request, pk=None):
+        follow = self.get_object()
+        user = follow.followee
+        return self._unfollow_author(request, user)
+
+    @action(detail=True, methods=["get"])
+    def redirect_to_profile(self, request, pk=None):
+        follow = self.get_object()
+        user_username = follow.followee.username
+        profile_url = f"/api/v1/social_media/profile/{user_username}"
+        return redirect(profile_url)
+
+
+class FollowersViewSet(
+    FollowMixin,
+    UnfollowMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
+    queryset = Follow.objects.all()
+    serializer_class = FollowSerializer
+    permission_classes = (IsAuthorOrReadOnly,)
+
+    def get_queryset(self):
+        username = self.kwargs["username"]
+        return self.queryset.filter(followee__username=username)
 
     def get_serializer_class(self):
         if self.action == "list":
