@@ -12,6 +12,7 @@ from social_media.views import (
     ToggleLikeAPIView,
     FollowersViewSet,
     UpdateProfileAPIView,
+    ProfileDetailView,
 )
 
 app_name = "social_media"
@@ -27,11 +28,11 @@ profile_router.register("user-followers", FollowersViewSet, basename="user-follo
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("profile/", RetrieveProfileAPIView.as_view()),
-    path("profile/<int:user_id>/", UpdateProfileAPIView.as_view()),
-    path("profile/", include(profile_router.urls)),
+    path("my-profile/", RetrieveProfileAPIView.as_view()),
+    path("my-profile/<int:user_id>/", UpdateProfileAPIView.as_view()),
+    path("my-profile/", include(profile_router.urls)),
     path(
-        "profile/user-posts/<int:post_id>/add_comment/",
+        "my-profile/user-posts/<int:post_id>/add_comment/",
         AddCommentAPIView.as_view(),
         name="add-comment",
     ),
@@ -46,8 +47,13 @@ urlpatterns = [
         name="add-like",
     ),
     path(
-        "profile/user-posts/<int:post_id>/like/",
+        "my-profile/user-posts/<int:post_id>/like/",
         ToggleLikeAPIView.as_view(),
         name="add-like",
+    ),
+    path(
+        "profile/<str:username>",
+        ProfileDetailView.as_view(),
+        name="profile-detail",
     ),
 ]

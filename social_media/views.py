@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from rest_framework import generics, viewsets, serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import (
@@ -21,7 +21,7 @@ from social_media.mixins import (
 from social_media.models import Profile, Post, Like, Follow, Comment
 from social_media.permissions import IsAuthorOrReadOnly
 from social_media.serializers import (
-    ProfileSerializer,
+    MyProfileSerializer,
     PostSerializer,
     CommentSerializer,
     CommentListSerializer,
@@ -37,13 +37,14 @@ from social_media.serializers import (
     CommentListProfileSerializer,
     FollowerDetailSerializer,
     FollowerListSerializer,
+    ProfileSerializer,
     # PostListSerializer,
 )
 
 
 class RetrieveProfileAPIView(generics.ListAPIView):
     queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
+    serializer_class = MyProfileSerializer
     permission_classes = (IsAuthorOrReadOnly,)
 
     def get_queryset(self):
@@ -55,7 +56,7 @@ class UpdateProfileAPIView(generics.UpdateAPIView):
     """No need to override get_queryset bc it's profile page"""
 
     queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
+    serializer_class = MyProfileSerializer
     permission_classes = (IsAuthorOrReadOnly,)
     lookup_field = "user_id"
 
@@ -88,6 +89,13 @@ class PostViewSet(FollowMixin, UnfollowMixin, viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = (IsAuthorOrReadOnly,)
+
+    @action(detail=True, methods=["get"])
+    def redirect_to_profile(self, request, pk=None):
+        post = self.get_object()
+        user_username = post.user.username
+        profile_url = f"/api/v1/social_media/profile/{user_username}"
+        return redirect(profile_url)
 
     def get_permissions(self):
         if self.action in ["follow_post_author", "unfollow_post_author"]:
@@ -171,6 +179,13 @@ class CommentViewSet(
         author = comment.post.user
         return self._unfollow_author(request, author)
 
+    @action(detail=True, methods=["get"])
+    def redirect_to_profile(self, request, pk=None):
+        comment = self.get_object()
+        user_username = comment.post.user.username
+        profile_url = f"/api/v1/social_media/profile/{user_username}"
+        return redirect(profile_url)
+
 
 class FollowingViewSet(
     FollowMixin,
@@ -212,6 +227,13 @@ class FollowingViewSet(
         user = follow.followee
         return self._unfollow_author(request, user)
 
+    @action(detail=True, methods=["get"])
+    def redirect_to_profile(self, request, pk=None):
+        follow = self.get_object()
+        user_username = follow.followee.username
+        profile_url = f"/api/v1/social_media/profile/{user_username}"
+        return redirect(profile_url)
+
 
 class FollowersViewSet(
     FollowMixin,
@@ -252,6 +274,13 @@ class FollowersViewSet(
         follow = self.get_object()
         user = follow.follower
         return self._unfollow_author(request, user)
+
+    @action(detail=True, methods=["get"])
+    def redirect_to_profile(self, request, pk=None):
+        follow = self.get_object()
+        user_username = follow.follower.username
+        profile_url = f"/api/v1/social_media/profile/{user_username}"
+        return redirect(profile_url)
 
 
 class AddCommentAPIView(APIView):
@@ -296,3 +325,14 @@ class ToggleLikeAPIView(APIView):
         return Response(
             {"message": "Like added successfully"}, status=status.HTTP_200_OK
         )
+
+
+class ProfileDetailView(generics.RetrieveAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    permission_classes = (IsAuthenticated,)
+    # lookup_field = "username"
+
+    def get_object(self):
+        username = self.kwargs["username"]
+        return self.get_queryset().get(user__username=username)

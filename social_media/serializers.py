@@ -6,10 +6,10 @@ from social_media.models import Profile, Like, Post, Follow, Comment
 from user.serializers import UserSerializer
 
 
-class ProfileSerializer(serializers.ModelSerializer):
+class MyProfileSerializer(serializers.ModelSerializer):
     # profile_name = serializers.CharField(source="user.username", read_only=True)
     user = serializers.CharField(source="user.username", read_only=True)
-    my_posts = serializers.SerializerMethodField()
+    posts = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
@@ -22,10 +22,35 @@ class ProfileSerializer(serializers.ModelSerializer):
             "total_followees",
             "registration_date",
             "last_login",
-            "my_posts",
+            "posts",
         )
 
-    def get_my_posts(self, profile):
+    def get_posts(self, profile):
+        posts = profile.user.posts.all()
+        serializer = PostListSerializer(posts, many=True)
+        return serializer.data
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    # profile_name = serializers.CharField(source="user.username", read_only=True)
+    user = serializers.CharField(source="user.username", read_only=True)
+    posts = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = (
+            "id",
+            "bio",
+            "user",
+            "profile_picture",
+            "total_followers",
+            "total_followees",
+            "registration_date",
+            "last_login",
+            "posts",
+        )
+
+    def get_posts(self, profile):
         posts = profile.user.posts.all()
         serializer = PostListSerializer(posts, many=True)
         return serializer.data
