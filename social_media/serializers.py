@@ -1,15 +1,14 @@
 from django.contrib.auth import get_user_model
-from rest_framework import serializers
+from rest_framework import serializers, pagination
 
 from social_media import services
 from social_media.models import Profile, Like, Post, Follow, Comment
 from user.serializers import UserSerializer
 
 
-class MyProfileSerializer(serializers.ModelSerializer):
-    # profile_name = serializers.CharField(source="user.username", read_only=True)
+class MyProfileSerializer(serializers.HyperlinkedModelSerializer):
     user = serializers.CharField(source="user.username", read_only=True)
-    posts = serializers.SerializerMethodField()
+    posts = serializers.SerializerMethodField("paginated_posts")
 
     class Meta:
         model = Profile
@@ -25,14 +24,18 @@ class MyProfileSerializer(serializers.ModelSerializer):
             "posts",
         )
 
-    def get_posts(self, profile):
-        posts = profile.user.posts.all()
-        serializer = PostListSerializer(posts, many=True)
+    def paginated_posts(self, obj):
+        posts = obj.user.posts.all()
+        # posts = Post.objects.filter(user=obj)
+        paginator = pagination.PageNumberPagination()
+        page = paginator.paginate_queryset(posts, self.context["request"])
+        serializer = PostListSerializer(
+            page, many=True, context={"request": self.context["request"]}
+        )
         return serializer.data
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    # profile_name = serializers.CharField(source="user.username", read_only=True)
     user = serializers.CharField(source="user.username", read_only=True)
     posts = serializers.SerializerMethodField()
 
@@ -94,16 +97,16 @@ class PostSerializer(serializers.ModelSerializer):
         return False
 
 
-class PostListSerializer(PostSerializer):
+class PostListSerializer(serializers.HyperlinkedModelSerializer):
     # add post instance
     # is_liked = serializers.SerializerMethodField()
-    user = serializers.CharField(source="user.username", read_only=True)
+    # user = serializers.CharField(source="user.username", read_only=True)
 
     class Meta:
         model = Post
         fields = (
             "id",
-            "user",
+            # "user",
             "title",
             "image",
             "content",
@@ -111,7 +114,7 @@ class PostListSerializer(PostSerializer):
             # "is_liked",
             "total_likes",
             "total_comments",
-            "is_following_author",
+            # "is_following_author",
         )
 
     def get_is_liked(self, obj) -> bool:
