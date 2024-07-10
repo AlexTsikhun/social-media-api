@@ -145,8 +145,17 @@ class FollowingViewSet(
     permission_classes = (IsAuthorOrReadOnly,)
 
     def get_queryset(self):
+        """Username filtering by followee"""
+
         username = self.kwargs["username"]
-        return self.queryset.filter(follower__username=username)
+        queryset = self.queryset.filter(follower__username=username)
+
+        username = self.request.query_params.get("username")
+
+        if username:
+            queryset = queryset.filter(followee__username__icontains=username)
+
+        return queryset.order_by("id")
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -182,7 +191,15 @@ class FollowingViewSet(
 
 class MyProfileFollowingViewSet(FollowingViewSet):
     def get_queryset(self):
-        return self.queryset.filter(follower=self.request.user)
+        """Username filtering by followee"""
+        queryset = self.queryset.filter(follower=self.request.user)
+
+        username = self.request.query_params.get("username")
+
+        if username:
+            queryset = queryset.filter(followee__username__icontains=username)
+
+        return queryset.order_by("id")
 
 
 class FollowersViewSet(
@@ -200,7 +217,14 @@ class FollowersViewSet(
 
     def get_queryset(self):
         username = self.kwargs["username"]
-        return self.queryset.filter(followee__username=username)
+        queryset = self.queryset.filter(followee__username=username)
+
+        username = self.request.query_params.get("username")
+
+        if username:
+            queryset = queryset.filter(follower__username__icontains=username)
+
+        return queryset.order_by("id")
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -237,7 +261,14 @@ class FollowersViewSet(
 class MyProfileFollowersViewSet(FollowersViewSet):
 
     def get_queryset(self):
-        return self.queryset.filter(followee=self.request.user)
+        queryset = self.queryset.filter(followee=self.request.user)
+
+        username = self.request.query_params.get("username")
+
+        if username:
+            queryset = queryset.filter(follower__username__icontains=username)
+
+        return queryset.order_by("id")
 
 
 class CommentViewSet(
