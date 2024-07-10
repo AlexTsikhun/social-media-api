@@ -1,10 +1,13 @@
 from datetime import datetime
 
 from rest_framework import generics, pagination
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404, redirect
 from rest_framework import generics, viewsets, serializers, status
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
@@ -41,6 +44,8 @@ from social_media.serializers import (
     FollowerDetailSerializer,
     FollowerListSerializer,
     ProfileSerializer,
+    # ProfileImageSerializer,
+    MyProfileSerializer,
     # PostListSerializer,
 )
 
@@ -48,7 +53,7 @@ from social_media.serializers import (
 class RetrieveProfileAPIView(generics.ListAPIView):
     queryset = Profile.objects.all()
     serializer_class = MyProfileSerializer
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         """ListAPIView with user filtering - like RetrieveAPIView (detail url not suitable)"""
@@ -67,10 +72,11 @@ class UpdateProfileAPIView(generics.UpdateAPIView):
 class UserPostsViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = self.queryset.filter(user_id=self.request.user.id)
+
         post_title = self.request.query_params.get("title")
         post_date = self.request.query_params.get("post_date")
 
@@ -151,7 +157,6 @@ class FollowingViewSet(
     FollowMixin,
     UnfollowMixin,
     mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     mixins.ListModelMixin,
     GenericViewSet,
@@ -222,7 +227,6 @@ class FollowersViewSet(
     FollowMixin,
     UnfollowMixin,
     mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     mixins.ListModelMixin,
     GenericViewSet,
@@ -291,14 +295,13 @@ class CommentViewSet(
     FollowMixin,
     UnfollowMixin,
     mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     mixins.ListModelMixin,
     GenericViewSet,
 ):
     queryset = Comment.objects.all()
     serializer_class = CommentProfileSerializer
-    permission_classes = (IsAuthorOrReadOnly,)  # for enter profile - it should be user
+    permission_classes = (IsAuthenticated,)  # for enter profile - it should be user
 
     def get_permissions(self):
         """write this method to explicitly, it no mandatory"""
@@ -392,7 +395,9 @@ class ToggleLikeAPIView(APIView):
         )
 
 
-class ProfileDetailView(generics.RetrieveAPIView):
+class ProfileDetailView(RetrieveProfileAPIView):
+    """Only for view other profiles (not to follow, RetrieveProfileAPIView doesn't support)"""
+
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = (IsAuthenticated,)
