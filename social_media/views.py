@@ -305,7 +305,14 @@ class CommentViewSet(
         return super().get_permissions()
 
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
+        queryset = self.queryset.filter(user=self.request.user)
+
+        post_title = self.request.query_params.get("post_title")
+
+        if post_title:
+            queryset = queryset.filter(post__title__icontains=post_title)
+
+        return queryset.order_by("id")
 
     def get_serializer_class(self):
         if self.action == "list":
