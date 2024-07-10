@@ -1,3 +1,6 @@
+from datetime import datetime
+
+from rest_framework import generics, pagination
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404, redirect
 from rest_framework import generics, viewsets, serializers, status
@@ -67,7 +70,18 @@ class UserPostsViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthorOrReadOnly,)
 
     def get_queryset(self):
-        return self.queryset.filter(user_id=self.request.user.id)
+        queryset = self.queryset.filter(user_id=self.request.user.id)
+        post_title = self.request.query_params.get("title")
+        post_date = self.request.query_params.get("post_date")
+
+        if post_title:
+            queryset = queryset.filter(title__icontains=post_title)
+
+        if post_date:
+            departure_time = datetime.strptime(post_date, "%Y-%m-%d").date()
+            queryset = queryset.filter(post_date__date=departure_time)
+
+        return queryset.order_by("id")
 
     def perform_create(self, serializer):
         serializer.save(user_id=self.request.user.id)
