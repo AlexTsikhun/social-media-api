@@ -148,6 +148,8 @@ class PostViewSet(FollowMixin, UnfollowMixin, viewsets.ModelViewSet):
 
 
 class FollowingViewSet(
+    FollowMixin,
+    UnfollowMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
