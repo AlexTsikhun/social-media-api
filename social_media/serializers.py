@@ -8,7 +8,6 @@ from user.serializers import UserSerializer
 
 class MyProfileSerializer(serializers.HyperlinkedModelSerializer):
     user = serializers.CharField(source="user.username", read_only=True)
-    posts = serializers.SerializerMethodField("paginated_posts")
 
     class Meta:
         model = Profile
@@ -19,20 +18,10 @@ class MyProfileSerializer(serializers.HyperlinkedModelSerializer):
             "profile_picture",
             "total_followers",
             "total_followees",
+            "total_posts",
             "registration_date",
             "last_login",
-            "posts",
         )
-
-    def paginated_posts(self, obj):
-        posts = obj.user.posts.all()
-        # posts = Post.objects.filter(user=obj)
-        paginator = pagination.PageNumberPagination()
-        page = paginator.paginate_queryset(posts, self.context["request"])
-        serializer = PostListSerializer(
-            page, many=True, context={"request": self.context["request"]}
-        )
-        return serializer.data
 
 
 class ProfileSerializer(serializers.ModelSerializer):

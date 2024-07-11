@@ -41,6 +41,10 @@ class Profile(models.Model):
     def total_followees(self):
         return self.user.followers.count()
 
+    @property
+    def total_posts(self):
+        return self.user.posts.count()
+
     def __str__(self):
         return f"{self.user}'s profile"
 
@@ -55,7 +59,6 @@ class Post(models.Model):
     post_date = models.DateTimeField(auto_now_add=True)
     likes = GenericRelation("Like", related_name="posts")
 
-    # total followers, ing
     def __str__(self):
         return self.title
 
