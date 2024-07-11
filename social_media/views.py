@@ -395,7 +395,7 @@ class ToggleLikeAPIView(APIView):
         )
 
 
-class ProfileDetailView(RetrieveProfileAPIView):
+class ProfileDetailView(generics.RetrieveAPIView):
     """Only for view other profiles (not to follow, RetrieveProfileAPIView doesn't support)"""
 
     queryset = Profile.objects.all()
