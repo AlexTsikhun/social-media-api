@@ -233,5 +233,128 @@ class AuthenticatedAddCommentApiTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
+        self.assertIn("comment_text", response.data)
+        self.assertEqual(response.data["comment_text"], "This is a test comment")
+        self.assertEqual(
+            response.data["user"], self.user_commenter.username
+        )  # Ensure comment is added by user_commenter
+
+        # Check if the comment is shown in the post detail
+        post_url = f"/api/v1/social_media/posts/{self.post.id}/"
+        response = self.client.get(post_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("comments", response.data)
+        self.assertEqual(len(response.data["comments"]), 1)
+        self.assertEqual(
+            response.data["comments"][0]["comment_text"], "This is a test comment"
+        )
+        self.assertEqual(
+            response.data["comments"][0]["user"], self.user_commenter.username
+        )
+
+    def test_add_comment_invalid_post(self):
+        comment_data = {"comment_text": "This is a test comment"}
+        url = reverse(
+            "social_media:add-comment-to-sb", kwargs={"post_id": self.post.id + 1}
+        )
+        response = self.client.post(url, comment_data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data["error"], "Post not found")
+
+    def test_add_comment_missing_comment_text(self):
+        comment_data = {}
+        url = reverse(
+            "social_media:add-comment-to-sb", kwargs={"post_id": self.post.id}
+        )
+
+        response = self.client.post(url, comment_data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("comment_text", response.data)
+        self.assertEqual(
+            "This field may not be null.", response.data["comment_text"][0]
+        )
+
+
+class AuthenticatedToggleLikeApiTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username="testuser", email="email@gmail.com", password="password"
+        )
+        self.post = Post.objects.create(title="Test Post", user=self.user)
+
+    def test_toggle_like_successful_add(self):
+        url = reverse("social_media:toggle-like-for-sb", args=[self.post.id])
+        self.client.force_authenticate(user=self.user)
+
+        # Create a mock for services.add_like using create_autospec
+        add_like = mock.create_autospec(services.add_like)
+
+        # Patch services.add_like with the mock
+        with patch.object(services, "add_like", add_like):
+            # Mock services.is_liked to return False (user has not liked the post)
+            with patch.object(services, "is_liked", return_value=False):
+                response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["message"], "Like added successfully")
+
+        # Verify that services.add_like was called once with the correct arguments
+        add_like.assert_called_once_with(self.post, self.user)
+
+    def test_toggle_like_successful_remove(self):
+        url = reverse("social_media:toggle-like-for-sb", args=[self.post.id])
+        self.client.force_authenticate(user=self.user)
+
+        remove_like = mock.create_autospec(services.remove_like)
+        with patch.object(services, "remove_like", remove_like):
+            with patch.object(services, "is_liked", return_value=True):
+                response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["message"], "Like removed successfully")
+
+        remove_like.assert_called_once_with(self.post, self.user)
+
+    def test_toggle_like_post_not_found(self):
+        url = reverse("social_media:toggle-like-for-me", args=[999])
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data["error"], "Post not found")
+
+    def test_toggle_like_unauthenticated(self):
+        url = reverse("social_media:toggle-like-for-me", args=[self.post.id])
+
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class UserCreationTests(TestCase):
+    """when create user - create profile, test signal"""
+
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_create_user_and_profile(self):
+        user_data = {
+            "username": "testuser",
+            "email": "test@example.com",
+            "password": "testpassword",
+        }
+        response = self.client.post(reverse("user:create"), user_data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(User.objects.filter(username="testuser").exists())
+
+        user = User.objects.get(username="testuser")
+        self.assertTrue(Profile.objects.filter(user=user).exists())
+
+
+# comme view
