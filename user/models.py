@@ -41,7 +41,8 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
-    """Usern, email, pass for register"""
+    """Usern, email, pass for register.
+    USERNAME_FIELD - unique identifier for authentication purposes for regular users"""
 
     email = models.EmailField(_("email address"), unique=True)
 
@@ -49,3 +50,6 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
     objects = UserManager()
+
+    def __str__(self):
+        return self.username
