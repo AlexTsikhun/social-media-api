@@ -47,6 +47,7 @@ docker compose up
 ## Technologies Used
 
 - Django, DRF
+- Celery, Redis
 - PostgreSQL (for production), Sqlite3 (for test)
 - Docker, docker compose
 - Unittest
@@ -83,7 +84,7 @@ User Profile:
 
 Follow/Unfollow:
 
-- Users can follow and unfollow other users.
+- Users can follow and unfollow other users. (Delete in followers/following pages - like unfollow)
 
 - Users can view the list of users they are following and the list of users following them.
 
@@ -146,10 +147,7 @@ A list of some of the main endpoints
 <details style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px">
 <summary style="font-size: 1.17em; font-weight: bold; ">toDo</summary>
 
-- mention signal
-- profile -> post -- my posts
 - and posts of followed
-- can follow in post and in profile - CREATE PROfILE!!!
 
 - delete all user fields in my profile
 
@@ -157,13 +155,24 @@ A list of some of the main endpoints
  
 - чи тре пермішина якщо нема екшинів 
 
-- following list filtered show id for all user, I need personal (and comment)
+- following list filtered show id for all user, or I need personal (and comment)?
 
-- thro, celery, tests
+- thro
 
-- profile/user-posts/ - no permission, show. deny acces in this endpoi
+- profile/user-posts/ - no permission, show. deny acces in this endpoi ??
 
-- pagination in my profile, for my posts (not for prof, for pagin)
-- Filtering followers, following
+- followings??? not folllowing
+- pic how set celery task
+- 
+after admin creation better to set username with admin panel (profile shows by username)
 
 </details>
+
+<details style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px">
+<summary style="font-size: 1.17em; font-weight: bold; ">Future work</summary>
+
+- can be `profiles` - with list of all profiles, `prof/<str>` ???
+- if I redirect to profile, but profile is mine - open my-profile
+- news - like posts but with filtering
+</details>
+
