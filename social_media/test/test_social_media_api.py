@@ -19,6 +19,7 @@ from user.models import User
 MY_PROFILE_URL = reverse("social_media:my-profile")
 USER_POSTS_URL = reverse("social_media:user-posts-list")
 POSTS_URL = reverse("social_media:posts-list")
+User = get_user_model()
 
 
 def user_following_url(username):
@@ -89,14 +90,12 @@ class AuthenticatedUserPostsApiTests(TestCase):
         self.assertEqual(len(response.data), Post.objects.count())
         self.assertEqual(response.data, serializer.data)
 
-        # Compare 'is_following_author' field in serializer with expected result
         for index, post_data in enumerate(response.data):
             expected_is_following_author = serializer.data[index]["is_following_author"]
             self.assertEqual(
                 post_data["is_following_author"], expected_is_following_author
             )
 
-    # another
     def test_create_post(self):
         user1 = self.user
         payload = {
@@ -110,7 +109,7 @@ class AuthenticatedUserPostsApiTests(TestCase):
         post = Post.objects.get(id=response.data["id"])
 
         self.assertEqual(post.user, user1)
-        self.assertIsInstance(post.user, get_user_model())
+        self.assertIsInstance(post.user, User)
         self.assertIsNotNone(post.user)
 
     def test_filter_user_posts_by_post_date(self):
@@ -191,7 +190,6 @@ class AuthenticatedPostsApiTests(TestCase):
         url_redirect = f"/api/v1/social_media/posts/{self.post.pk}/redirect_to_profile/"
         response_redirect = self.client.get(url_redirect)
 
-        # Assert that the response status code is 302 Found (redirect)
         self.assertEqual(response_redirect.status_code, status.HTTP_302_FOUND)
 
         self.assertTrue(
@@ -386,4 +384,49 @@ class UserCreationTests(TestCase):
         self.assertTrue(Profile.objects.filter(user=user).exists())
 
 
-# comme view
+class CommentViewSetTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+        self.user = User.objects.create_user(
+            username="testuser", email="test@test.com", password="12345"
+        )
+        self.client.force_authenticate(user=self.user)
+
+        self.post_author = User.objects.create_user(
+            username="post_author", email="post_author@test.com", password="12345"
+        )
+
+        self.post = Post.objects.create(
+            user=self.post_author, title="Test Post", content="Test content"
+        )
+        self.comment = Comment.objects.create(
+            user=self.user, post=self.post, comment_text="Test comment"
+        )
+
+    def test_list_comments(self):
+        url = reverse("social_media:user-comments-list")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)  # Assuming only one comment in setup
+
+    def test_retrieve_comment(self):
+        url = reverse(
+            "social_media:user-comments-detail", kwargs={"pk": self.comment.pk}
+        )
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["comment_text"], "Test comment")
+
+    def test_delete_comment(self):
+        url = reverse(
+            "social_media:user-comments-detail", kwargs={"pk": self.comment.pk}
+        )
+
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Comment.objects.filter(pk=self.comment.pk).exists())

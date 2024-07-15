@@ -24,12 +24,12 @@ router.register("posts", PostViewSet, basename="posts")
 
 my_profile_router = routers.DefaultRouter()
 my_profile_router.register("user-posts", UserPostsViewSet, basename="user-posts")
-my_profile_router.register("user-comments", CommentViewSet)
+my_profile_router.register("user-comments", CommentViewSet, basename="user-comments")
 my_profile_router.register(
-    "user-following", MyProfileFollowingViewSet, basename="user-following"
+    "user-following", MyProfileFollowingViewSet, basename="my-user-following"
 )
 my_profile_router.register(
-    "user-followers", MyProfileFollowersViewSet, basename="user-followers"
+    "user-followers", MyProfileFollowersViewSet, basename="my-user-followers"
 )
 
 profile_router = routers.DefaultRouter()
