@@ -9,8 +9,11 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from social_media import services
-from social_media.models import Profile, Post, Follow
-from social_media.serializers import PostSerializer
+from social_media.models import Profile, Post, Follow, Comment
+from social_media.serializers import (
+    PostSerializer,
+    FollowingListSerializer,
+)
 from user.models import User
 
 MY_PROFILE_URL = reverse("social_media:my-profile")
@@ -18,8 +21,8 @@ USER_POSTS_URL = reverse("social_media:user-posts-list")
 POSTS_URL = reverse("social_media:posts-list")
 
 
-def follow_post_author_url(post_id):
-    return reverse("social_media:posts-list-follow", kwargs={"post_id": post_id})
+def user_following_url(username):
+    return reverse("social_media:user-following-list", kwargs={"username": username})
 
 
 def sample_user(**params):
@@ -199,7 +202,33 @@ class AuthenticatedPostsApiTests(TestCase):
 
 
 class AuthenticatedFollowingApiTests(TestCase):
-    pass
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="testuser", email="email@email.com", password="12345"
+        )
+        self.client = APIClient()
+
+        self.followee = User.objects.create_user(
+            username="followee", email="followee@email.com", password="12345"
+        )
+        self.follower = User.objects.create_user(
+            username="follower", email="follower@email.com", password="12345"
+        )
+
+        Follow.objects.create(follower=self.follower, followee=self.followee)
+
+    def test_filter_following_users_by_username(self):
+        following = Follow.objects.filter(follower=self.follower)
+
+        url = user_following_url(username=self.follower)
+        response = self.client.get(
+            url,
+            {"username": self.followee.username},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        serializer = FollowingListSerializer(following, many=True)
+        self.assertEqual(serializer.data, response.data)
 
 
 class AuthenticatedAddCommentApiTests(TestCase):
