@@ -1,6 +1,7 @@
 # Social Media API
 
-The Airport RESTful API for a social media platform. The API allows users to create profiles, follow other users, create and view posts, manage likes and comments, and perform basic social media actions.
+The Airport RESTful API for a social media platform. The API allows users to create profiles, follow other users, create
+and view posts, manage likes and comments, and perform basic social media actions.
 
 ## Table of Contents
 
@@ -31,6 +32,7 @@ python3 manage.py runserver
 ```
 
 ## Run with docker
+
 Docker should be installed locally (no need to install Postgres)
 
 ```bash
@@ -44,23 +46,36 @@ docker compose up
 - Get access token `api/v1/user/token/`
 - API Root `api/v1/social_media/`
 
+## Launch periodic task with Celery
+
+Celery should be installed locally. Run worker and celery beat:
+
+```bash
+celery -A social_media_api worker -l INFO
+celery -A social_media_api beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
+```
+
+[Guide how to create periodic task through Django admin panel here](https://app.tango.us/app/workflow/Creating-a-Periodic-Task-for-Admin-Post-Creation-in-Django-Site-Administration-12bff9230986445aad3be37e0ee9de13)
+
 ## Technologies Used
 
 - Django, DRF
+- Celery, Redis
 - PostgreSQL (for production), Sqlite3 (for test)
 - Docker, docker compose
 - Unittest
 
 ## Features:
+
 - schedule Post creation using Celery
-- Using Django Signals when creating a user, a profile is created automatically 
+- Using Django Signals when creating a user, a profile is created automatically
 - JWT authenticated
 - Admin panel `/admin/`
 - Documentation is located at `api/doc/swagger-ui/` or `api/doc/redoc/`
 - Managing Profile and Posts
 - Used fat models for create Posts, Likes and add Comments
 - Filtering followers, following
-- Throttling, Pagination for Posts, Adding profile and post images  
+- Throttling, Pagination for Posts, Adding profile and post images
 - Validation for Flight.....
 
 ### General Features
@@ -83,7 +98,7 @@ User Profile:
 
 Follow/Unfollow:
 
-- Users can follow and unfollow other users.
+- Users can follow and unfollow other users. (Delete in followers/following pages - like unfollow)
 
 - Users can view the list of users they are following and the list of users following them.
 
@@ -97,7 +112,8 @@ Post Creation and Retrieval:
 
 Likes and Comments:
 
-- Users can like and unlike posts. Users can view the list of posts they have liked. Users can add comments to posts and view comments on posts.
+- Users can like and unlike posts. Users can view the list of posts they have liked. Users can add comments to posts and
+  view comments on posts.
 
 Schedule Post creation using Celery:
 
@@ -135,35 +151,62 @@ Technical Requirements:
 
 #### DB Structure:
 
-.....
+![db.png](images/db.png)
 
 ### An example of using the API
 
-A list of some of the main endpoints
+A list of some of the main-simples endpoints (for more, use documentation):
 
-....
+Current user profile:
+
+![my_profile.png](images/my-profile.png)
+
+Another user profile view:
+
+![my_profile.png](images/profile-detail.png)
+
+All post list:
+
+![post_list.png](images/post-list.png)
+
+Post detail:
+
+![post_detail.png](images/post-detail.png)
+
+My comment list:
+
+![my-comment-list.png](images/my-comment-list.png)
+
 
 <details style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px">
 <summary style="font-size: 1.17em; font-weight: bold; ">toDo</summary>
 
-- mention signal
-- profile -> post -- my posts
 - and posts of followed
-- can follow in post and in profile - CREATE PROfILE!!!
 
 - delete all user fields in my profile
 
-- followers - follow creators; followees - who are followed by creators 
- 
-- чи тре пермішина якщо нема екшинів 
+- followers - follow creators; followees - who are followed by creators
 
-- following list filtered show id for all user, I need personal (and comment)
+- чи тре пермішина якщо нема екшинів
 
-- thro, celery, tests
+- following list filtered show id for all user, or I need personal (and comment)?
 
-- profile/user-posts/ - no permission, show. deny acces in this endpoi
+- thro
 
-- pagination in my profile, for my posts (not for prof, for pagin)
-- Filtering followers, following
+- profile/user-posts/ - no permission, show. deny acces in this endpoi ??
+
+- followings??? not folllowing
+
+after admin creation better to set username with admin panel (profile shows by username)
 
 </details>
+
+<details style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px">
+<summary style="font-size: 1.17em; font-weight: bold; ">Future work</summary>
+
+- can be `profiles` - with list of all profiles, `prof/<str>` ???
+- if I redirect to profile, but profile is mine - open my-profile
+- news - like posts but with filtering
+
+</details>
+
