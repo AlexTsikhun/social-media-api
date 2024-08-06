@@ -85,7 +85,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class PostListSerializer(PostSerializer):
-    is_liked = serializers.SerializerMethodField()
+    # is_liked = serializers.SerializerMethodField()
     user = serializers.CharField(source="user.username", read_only=True)
 
     class Meta:
@@ -102,11 +102,14 @@ class PostListSerializer(PostSerializer):
             "total_comments",
             "is_following_author",
         )
-
-    def get_is_liked(self, obj) -> bool:
-        """Checks if `request.user` liked (`obj`) post."""
-        user = self.context.get("request").user
-        return services.is_liked(obj, user)
+    # ?
+    # def get_is_liked(self, obj) -> bool:
+    #     """Checks if `request.user` liked (`obj`) post."""
+    #     if "request" in self.context and self.context["request"] is not None:
+    #         user = self.context["request"].user
+    #         return services.is_liked(obj, user)
+    #     else:
+    #         return False  # or handle this case as per your application's logic
 
 
 class LikeSerializer(serializers.ModelSerializer):

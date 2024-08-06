@@ -51,7 +51,7 @@ from social_media.serializers import (
 
 
 class RetrieveProfileAPIView(generics.ListAPIView):
-    queryset = Profile.objects.all()
+    queryset = Profile.objects.select_related("user")
     serializer_class = MyProfileSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -70,7 +70,7 @@ class UpdateProfileAPIView(generics.UpdateAPIView):
 
 
 class UserPostsViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
+    queryset = Post.objects.select_related("user")
     serializer_class = PostSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -161,7 +161,7 @@ class FollowingViewSet(
     mixins.ListModelMixin,
     GenericViewSet,
 ):
-    queryset = Follow.objects.all()
+    queryset = Follow.objects.select_related("follower", "followee")
     serializer_class = FollowSerializer
     permission_classes = (IsAuthorOrReadOnly,)
 
@@ -299,7 +299,7 @@ class CommentViewSet(
     mixins.ListModelMixin,
     GenericViewSet,
 ):
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.select_related("user", "post")
     serializer_class = CommentProfileSerializer
     permission_classes = (IsAuthenticated,)  # for enter profile - it should be user
 
