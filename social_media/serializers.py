@@ -48,7 +48,6 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    is_liked = serializers.SerializerMethodField()
     user = serializers.CharField(source="user.username", read_only=True)
     is_following_author = serializers.SerializerMethodField()
 
@@ -61,16 +60,10 @@ class PostSerializer(serializers.ModelSerializer):
             "image",
             "content",
             "post_date",
-            "is_liked",
             "total_likes",
             "total_comments",
             "is_following_author",
         )
-
-    def get_is_liked(self, obj) -> bool:
-        """Checks if `request.user` liked (`obj`) post."""
-        user = self.context.get("request").user
-        return services.is_liked(obj, user)
 
     def get_is_following_author(self, obj):
         request = self.context.get("request")
@@ -97,11 +90,12 @@ class PostListSerializer(PostSerializer):
             "image",
             "content",
             "post_date",
-            "is_liked",
+            # "is_liked",
             "total_likes",
             "total_comments",
             "is_following_author",
         )
+
     # ?
     # def get_is_liked(self, obj) -> bool:
     #     """Checks if `request.user` liked (`obj`) post."""
