@@ -233,7 +233,7 @@ export default function Home() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </CardHeader>
-              <Link to={`/post/${post.id}`}>
+              <Link to={`/posts/${post.id}`}>
                 <img
                   src={
                     post.image ||
@@ -264,7 +264,7 @@ export default function Home() {
                     <span>{post.caption}</span>
                   </div>
                   <Link
-                    to={`/post/${post.id}`}
+                    to={`/posts/${post.id}`}
                     className="text-gray-500 text-sm mt-1 block"
                   >
                     View all {post.comments} comments

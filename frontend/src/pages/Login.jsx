@@ -28,7 +28,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Left side - Visual */}
-      <div className="hidden md:flex md:w-1/2 bg-[#E60023] p-8 items-center justify-center">
+      <div className="hidden md:flex md:w-1/2 bg-[#2E7D32] p-8 items-center justify-center">
         <div className="max-w-md">
           <div className="grid grid-cols-3 gap-2">
             {Array.from({ length: 9 }).map((_, i) => (
@@ -114,7 +114,7 @@ export default function LoginPage() {
                 </div>
                 <a
                   href="#"
-                  className="text-sm font-medium text-[#E60023] hover:text-[#C8001D]"
+                  className="text-sm font-medium text-[#2E7D32] hover:text-[#255A29]"
                 >
                   Forgot password?
                 </a>
@@ -123,7 +123,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full h-12 rounded-xl bg-[#E60023] hover:bg-[#C8001D] text-white"
+              className="w-full h-12 rounded-xl bg-[#2E7D32] hover:bg-[#255A29] text-white"
               disabled={isLoading}
             >
               {isLoading ? "Signing in..." : "Sign in"}
@@ -155,8 +155,8 @@ export default function LoginPage() {
           <p className="text-center text-sm text-muted-foreground mt-6">
             Don't have an account?{" "}
             <a
-              href="#"
-              className="font-medium text-[#E60023] hover:text-[#C8001D]"
+              href="/register"
+              className="font-medium text-[#2E7D32] hover:text-[#255A29]"
             >
               Sign up
             </a>

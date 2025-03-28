@@ -278,7 +278,7 @@ export default function Profile() {
               {posts.map((post) => (
                 <Link
                   key={post.id}
-                  to={`/post/${post.id}`}
+                  to={`/posts/${post.id}`}
                   className="relative aspect-square group overflow-hidden"
                 >
                   <img

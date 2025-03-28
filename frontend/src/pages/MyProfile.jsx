@@ -322,7 +322,7 @@ export default function MyProfile() {
               {posts.map((post) => (
                 <Link
                   key={post.id}
-                  to={`/post/${post.id}`}
+                  to={`/posts/${post.id}`}
                   className="relative aspect-square group overflow-hidden"
                 >
                   <img
@@ -352,7 +352,7 @@ export default function MyProfile() {
               {savedPosts.map((post) => (
                 <Link
                   key={post.id}
-                  to={`/post/${post.id}`}
+                  to={`/posts/${post.id}`}
                   className="relative aspect-square group overflow-hidden"
                 >
                   <img
