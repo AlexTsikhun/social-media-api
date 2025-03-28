@@ -5,7 +5,7 @@ import Profile from "./pages/Profile";
 import PostDetail from "./pages/PostDetail";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-// import NotFound from "./pages/NotFound";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -16,7 +16,7 @@ function App() {
       <Route path="/posts/:id" element={<PostDetail />} /> 
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      {/* <Route path="*" element={<NotFound />} /> */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

@@ -115,12 +115,11 @@ const stories = [
   },
 ];
 
-
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header/Navigation */}
       <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-2 flex items-center justify-between">
@@ -169,7 +168,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <main className="container mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-3 gap-6 flex-grow">
         {/* Main content - Posts */}
         <div className="md:col-span-2 space-y-6">
           {/* Stories */}
@@ -338,42 +337,44 @@ export default function Home() {
               ))}
             </div>
           </div>
-
-          {/* Footer links */}
-          <div className="text-xs text-gray-400">
-            <div className="flex flex-wrap gap-2 mb-4">
-              <Link to="#" className="hover:underline">
-                About
-              </Link>
-              <span>•</span>
-              <Link to="#" className="hover:underline">
-                Help
-              </Link>
-              <span>•</span>
-              <Link to="#" className="hover:underline">
-                Press
-              </Link>
-              <span>•</span>
-              <Link to="#" className="hover:underline">
-                API
-              </Link>
-              <span>•</span>
-              <Link to="#" className="hover:underline">
-                Jobs
-              </Link>
-              <span>•</span>
-              <Link to="#" className="hover:underline">
-                Privacy
-              </Link>
-              <span>•</span>
-              <Link to="#" className="hover:underline">
-                Terms
-              </Link>
-            </div>
-            <p>© 2023 SOCIALAPP</p>
-          </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 py-4 mt-8">
+        <div className="container mx-auto px-4 text-xs text-gray-400">
+          <div className="flex flex-wrap gap-2 mb-4">
+            <Link to="#" className="hover:underline">
+              About
+            </Link>
+            <span>•</span>
+            <Link to="#" className="hover:underline">
+              Help
+            </Link>
+            <span>•</span>
+            <Link to="#" className="hover:underline">
+              Press
+            </Link>
+            <span>•</span>
+            <Link to="#" className="hover:underline">
+              API
+            </Link>
+            <span>•</span>
+            <Link to="#" className="hover:underline">
+              Jobs
+            </Link>
+            <span>•</span>
+            <Link to="#" className="hover:underline">
+              Privacy
+            </Link>
+            <span>•</span>
+            <Link to="#" className="hover:underline">
+              Terms
+            </Link>
+          </div>
+          <p>© 2023 SOCIALAPP</p>
+        </div>
+      </footer>
     </div>
   );
 }
